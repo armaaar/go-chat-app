@@ -61,21 +61,21 @@ const isDisabled = ref(true);
 
 onMounted(() => {
   // Messages
-  axios.get<Message[]>('http://localhost:5000/messages').then((response) => {
-    messages.value = response.data.sort((a, b) => a.ID - b.ID);
-  });
+  axios
+    .get<Message[]>(`${import.meta.env.VITE_API_ROOT}/messages`)
+    .then((response) => {
+      messages.value = response.data.sort((a, b) => a.ID - b.ID);
+    });
 
   // WebSockets
-  wsConnection.value = new WebSocket('ws://localhost:5000/messages/ws');
+  wsConnection.value = new WebSocket(
+    `${import.meta.env.VITE_WS_ROOT}/messages/ws`
+  );
 
   wsConnection.value.onopen = () => {
     isDisabled.value = false;
     newMessage.value = '';
     error.value = '';
-
-    wsConnection.value?.send(
-      JSON.stringify({ Name: userName, Message: 'ENTERED THE ROOM!' })
-    );
   };
   wsConnection.value.onerror = (ev) => {
     isDisabled.value = true;
@@ -121,7 +121,10 @@ function sendMessage() {
 </script>
 
 <template>
-  <h2 class="title">Start Chatting!</h2>
+  <h2 class="title">
+    Start Chatting, <span :style="{ color: stc(userName) }">{{ userName }}</span
+    >!
+  </h2>
   <div class="messages" ref="messagesEl">
     <div
       v-for="message in messages"

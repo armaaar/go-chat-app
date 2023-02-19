@@ -13,6 +13,7 @@
     "godotenv",
     "gorm",
     "joho",
-    "sslmode"
+    "sslmode",
+    "VITE"
   ]
 }
