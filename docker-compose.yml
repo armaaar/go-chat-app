@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: superUser
+      POSTGRES_PASSWORD: unsecurePassword
+      POSTGRES_DB: chatService
+    ports:
+      - 5432:5432
+
+  adminer:
+    depends_on:
+      - db
+    image: adminer
+    restart: unless-stopped
+    ports:
+      - 8081:8080
+
+  backend-service:
+    depends_on:
+      - db
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 5000:5000
+    volumes:
+      - ./backend:/usr/src/app
+
+  frontend-service:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - 8080:8080
+    volumes:
+      - ./frontend:/app
+
+volumes:
+    db_data:

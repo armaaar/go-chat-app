@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    // General
+    "EditorConfig.EditorConfig",
+    "streetsidesoftware.code-spell-checker",
+
+    // FE
+    "Vue.volar",
+    "Vue.vscode-typescript-vue-plugin",
+    // Linting
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+
+    // BE
+    "golang.Go"
+  ]
+}

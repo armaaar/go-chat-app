@@ -1,0 +1,9 @@
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.markdownlint": true,
+    "source.fixAll.eslint": true
+  },
+  "go.lintOnSave": "file",
+  "cSpell.words": ["autoload", "godotenv", "joho"]
+}
