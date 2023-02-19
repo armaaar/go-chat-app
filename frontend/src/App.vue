@@ -1,93 +1,67 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router';
-import HelloWorld from './components/HelloWorld.vue';
+import router from './router';
+import { store } from './store';
+
+function logout() {
+  store.name = '';
+  router.push('/');
+}
 </script>
 
 <template>
   <div>
-    <header>
-      <img
-        alt="Vue logo"
-        class="logo"
-        src="@/assets/logo.svg"
-        width="125"
-        height="125"
-      />
-
-      <div class="wrapper">
-        <HelloWorld msg="You did it!" />
-
-        <nav>
-          <RouterLink to="/">Home</RouterLink>
-          <RouterLink to="/about">About</RouterLink>
-        </nav>
-      </div>
+    <header class="header">
+      <h1 class="header__title">Go Chat App</h1>
+      <nav class="header__nav">
+        <RouterLink class="header__nav-item" to="/">Home</RouterLink>
+        <template v-if="store.isNameValid">
+          <RouterLink class="header__nav-item" to="/chat">Chat</RouterLink>
+          <a class="header__nav-item" @click.prevent="logout">Logout</a>
+        </template>
+      </nav>
     </header>
 
-    <RouterView />
+    <main class="page">
+      <RouterView />
+    </main>
   </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
+<style lang="scss" scoped>
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--page-padding);
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--section-gap);
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+  &__title {
+    font-weight: bold;
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+  &__nav {
+    &-item {
+      cursor: pointer;
+      padding: 8px 16px;
+      margin-right: 8px;
+      text-decoration: none;
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
+      &:last-child() {
+        margin-right: 0;
+      }
+      &:hover,
+      &:focus {
+        border-bottom: 1px solid var(--color-active-selected);
+      }
+    }
   }
+}
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.page {
+  padding: 0 var(--page-padding) var(--section-gap);
 }
 </style>
