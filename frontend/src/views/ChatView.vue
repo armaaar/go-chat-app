@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import axios from 'axios';
 import router from '@/router';
 import { store } from '@/store';
-import { onMounted, onUpdated, ref } from 'vue';
+import { onMounted, onUnmounted, onUpdated, ref } from 'vue';
 import stc from 'string-to-color';
 
 if (!store.isNameValid) {
@@ -9,40 +10,19 @@ if (!store.isNameValid) {
 }
 
 interface Message {
-  id: number;
-  name: string;
-  message: string;
-  created_at: string;
+  ID: number;
+  Name: string;
+  Message: string;
+  CreatedAt: string;
 }
 
+// Constants
 const userName = store.name;
 const maxMessageLength = 500;
 
+// Messages element controls
 const messagesEl = ref<null | HTMLDivElement>(null);
-const messages = ref<Message[]>([
-  {
-    id: 1,
-    name: userName,
-    message:
-      'hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha hahaha ',
-    created_at: 'xxxx',
-  },
-  {
-    id: 2,
-    name: 'userName',
-    message: 'hehehe',
-    created_at: 'xxsx',
-  },
-  ...Array(300).fill({
-    id: 3,
-    name: 'asd',
-    message: 'hohohoh',
-    created_at: 'xxdx',
-  }),
-]);
 const stickMessagesBottom = ref(true);
-const newMessage = ref('');
-const error = ref('');
 
 function scrollMessagesToBottom() {
   if (messagesEl.value) {
@@ -72,6 +52,53 @@ onUpdated(() => {
   }
 });
 
+// Messages controls
+const wsConnection = ref<WebSocket | null>(null);
+const messages = ref<Message[]>([]);
+const newMessage = ref('');
+const error = ref('');
+const isDisabled = ref(true);
+
+onMounted(() => {
+  // Messages
+  axios.get<Message[]>('http://localhost:5000/messages').then((response) => {
+    messages.value = response.data.sort((a, b) => a.ID - b.ID);
+  });
+
+  // WebSockets
+  wsConnection.value = new WebSocket('ws://localhost:5000/messages/ws');
+
+  wsConnection.value.onopen = () => {
+    isDisabled.value = false;
+    newMessage.value = '';
+    error.value = '';
+
+    wsConnection.value?.send(
+      JSON.stringify({ Name: userName, Message: 'ENTERED THE ROOM!' })
+    );
+  };
+  wsConnection.value.onerror = (ev) => {
+    isDisabled.value = true;
+    newMessage.value = '';
+    error.value = 'An error occurred! Please refresh the page';
+    console.error('WS Error:', ev);
+  };
+  wsConnection.value.onclose = () => {
+    isDisabled.value = true;
+    newMessage.value = '';
+    error.value = 'Connection to the server is closed!';
+  };
+  wsConnection.value.onmessage = (ev) => {
+    const msg = JSON.parse(ev.data) as Message;
+    messages.value.push(msg);
+  };
+});
+onUnmounted(() => {
+  if (wsConnection.value) {
+    wsConnection.value.close();
+  }
+});
+
 function sendMessage() {
   if (!newMessage.value) {
     error.value = 'Please enter a message first!';
@@ -82,15 +109,12 @@ function sendMessage() {
     return;
   }
 
-  messages.value = [
-    ...messages.value,
-    {
-      id: messages.value.length,
-      name: userName,
-      message: newMessage.value,
-      created_at: 'xxxx',
-    },
-  ];
+  if (wsConnection.value) {
+    wsConnection.value.send(
+      JSON.stringify({ Name: userName, Message: newMessage.value })
+    );
+  }
+  error.value = '';
   newMessage.value = '';
   scrollMessagesToBottom();
 }
@@ -101,17 +125,19 @@ function sendMessage() {
   <div class="messages" ref="messagesEl">
     <div
       v-for="message in messages"
-      :key="message.id"
+      :key="message.ID"
       class="messages__item"
-      :class="{ 'messages__item--active': message.name === userName }"
+      :class="{ 'messages__item--active': message.Name === userName }"
     >
-      <span class="messages__item-time">[{{ message.created_at }}]</span>
-      &nbsp;
-      <span class="messages__item-name" :style="{ color: stc(message.name) }"
-        >{{ message.name }}:</span
+      <span class="messages__item-time"
+        >[{{ new Date(message.CreatedAt).toLocaleString() }}]</span
       >
       &nbsp;
-      <span class="messages__item-message">{{ message.message }}</span>
+      <span class="messages__item-name" :style="{ color: stc(message.Name) }"
+        >{{ message.Name }}:</span
+      >
+      &nbsp;
+      <span class="messages__item-message">{{ message.Message }}</span>
     </div>
   </div>
   <div class="new-message">
@@ -121,6 +147,7 @@ function sendMessage() {
       v-model="newMessage"
       :maxlength="maxMessageLength"
       @keypress.enter="sendMessage"
+      :disabled="isDisabled"
     />
     <button class="new-message__btn" @click="sendMessage">Send</button>
     <p v-if="error" class="new-message__error">{{ error }}</p>
