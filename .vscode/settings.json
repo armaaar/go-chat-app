@@ -5,5 +5,13 @@
     "source.fixAll.eslint": true
   },
   "go.lintOnSave": "file",
-  "cSpell.words": ["autoload", "godotenv", "joho"]
+  "cSpell.words": [
+    "armaaar",
+    "autoload",
+    "dbname",
+    "godotenv",
+    "gorm",
+    "joho",
+    "sslmode"
+  ]
 }

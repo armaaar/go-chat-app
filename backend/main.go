@@ -1,21 +1,21 @@
 package main
 
 import (
-	"io"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/armaaar/go-chat-app/database"
+	"github.com/armaaar/go-chat-app/health"
 	_ "github.com/joho/godotenv/autoload"
 )
 
-func healthRoute(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	io.WriteString(w, "{\"state\":\"ok\"}")
-}
-
 func main() {
-	http.HandleFunc("/", healthRoute)
+	database.SetupDatabase()
 
+	baseRoute := "/"
+	health.RegisterRoutes(baseRoute)
+
+	log.Printf("Running: http://localhost:%s", os.Getenv("PORT"))
 	log.Panic(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
